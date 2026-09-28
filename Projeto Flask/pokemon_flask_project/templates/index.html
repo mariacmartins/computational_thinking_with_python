@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poke-Hunter Flask</title>
+    <style>
+        /* CSS Integrado: Estilização do Dark Mode e alinhamento central com Flexbox */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centraliza todos os elementos filhos na horizontal */
+        }
+
+        h1 {
+            color: #ffcb05;
+            text-shadow: 2px 2px #3b4cca;
+            margin-bottom: 25px;
+        }
+
+        /* Estilização da caixa de erro */
+        .msg-erro {
+            color: #ff4d4d;
+            background-color: #330000;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid #ff0000;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* Formulário de Busca */
+        form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input {
+            padding: 12px 15px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            width: 250px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        input:focus {
+            border-color: #ffcb05; /* Destaca a borda em amarelo ao clicar no input */
+        }
+
+        button {
+            background-color: #ffcb05;
+            color: #3b4cca;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: transform 0.1s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05); /* Efeito suave de ampliação ao passar o mouse */
+            background-color: #ffe169;
+        }
+
+        /* Card Visual do Pokémon Encontrado */
+        .card {
+            background-color: #2a2a2a;
+            border: 3px solid #ffcb05;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            width: 220px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            margin-bottom: 40px;
+        }
+
+        .card h2 {
+            margin: 0;
+            text-transform: capitalize; /* Deixa a primeira letra do nome maiúscula */
+            color: #fff;
+        }
+
+        .card img {
+            width: 130px;
+            height: 130px;
+        }
+
+        .btn-capturar {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn-capturar:hover {
+            background-color: #218838;
+        }
+
+        hr {
+            width: 100%;
+            max-width: 800px;
+            border: 0;
+            height: 1px;
+            background: #444;
+            margin: 20px 0 40px 0;
+        }
+
+        /* Seção da Coleção de Capturados */
+        .colecao-container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .grid {
+            display: flex;
+            flex-wrap: wrap; /* Permite que os cards da coleção dobrem de linha conforme o espaço */
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .pk-item {
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 15px;
+            width: 120px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .pk-item:hover {
+            transform: translateY(-5px); /* Efeito de flutuação ao passar o mouse */
+            border-color: #ffcb05;
+        }
+
+        .pk-item img {
+            width: 90px;
+            height: 90px;
+        }
+
+        .pk-item p {
+            margin: 8px 0 0 0;
+            font-weight: bold;
+            text-transform: capitalize;
+            color: #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🔴 Poke-Hunter Flask</h1>
+
+    <!-- Formulário que dispara uma requisição POST para a rota '/' -->
+    <form method="POST">
+        <input type="text" name="nome" placeholder="Digite o nome (ex: pikachu)" required autocomplete="off">
+        <button type="submit">Buscar na API</button>
+    </form>
+
+    <!-- Jinja2: Bloco condicional que renderiza a mensagem de erro se a variável 'erro' existir -->
+    {% if erro %}
+        <div class="msg-erro">
+            ⚠️ {{ erro }}
+        </div>
+    {% endif %}
+
+    <!-- Jinja2: Bloco condicional para renderizar o card apenas se um Pokémon for encontrado -->
+    {% if pokemon %}
+        <div class="card">
+            <h2>{{ pokemon.nome }}</h2>
+            <!-- Interpola a URL da imagem trazida da API -->
+            <img src="{{ pokemon.sprite }}" alt="{{ pokemon.nome }}">
+            <br>
+            <!-- Link dinâmico para acionar a rota de captura repassando o nome do Pokémon -->
+            <a href="/capturar/{{ pokemon.nome }}" class="btn-capturar">⚡ Capturar!</a>
+        </div>
+    {% endif %}
+
+    <hr>
+
+    <!-- Galeria da Coleção de Pokémons -->
+    <div class="colecao-container">
+        <h2>Minha Coleção</h2>
+
+        <!-- Jinja2: Verifica se a lista 'colecao' está vazia -->
+        {% if not colecao %}
+            <p style="color: #888;">Sua coleção está vazia. Busque e capture Pokémons acima!</p>
+        {% else %}
+            <div class="grid">
+                <!-- Jinja2: Loop 'for' que percorre cada item da lista 'colecao' repassada pelo Flask -->
+                {% for p in colecao %}
+                    <div class="pk-item">
+                        <img src="{{ p.sprite }}" alt="{{ p.nome }}">
+                        <p>{{ p.nome }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>
